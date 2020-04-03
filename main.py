@@ -22,11 +22,11 @@ def main():
         faces = face_cascade.detectMultiScale(frame, 1.1, 4)
 
         # take only one (the first) face
-        if False:  # len(faces) > 3
+        if len(faces) > 0:
             x, y, w, h = faces[0]
 
             # grabcut thread
-            grabcut = GrabCut(frame, x, y, w, h, Queue(1))
+            grabcut = GrabCut(frame, x, y, w, h, 0.3, Queue(1))
             grabcut.start()
 
             # blur thread

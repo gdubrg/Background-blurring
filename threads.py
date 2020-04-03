@@ -46,7 +46,7 @@ class BlurBkg(threading.Thread):
 
 
 class GrabCut(threading.Thread):
-    def __init__(self, frame, x, y, w, h, grab_queue):
+    def __init__(self, frame, x, y, w, h, scale, grab_queue):
         threading.Thread.__init__(self)
 
         self.frame = frame
@@ -54,6 +54,7 @@ class GrabCut(threading.Thread):
         self.y = y
         self.w = w
         self.h = h
+        self.scale = scale
         self.grab_queue = grab_queue
 
         self.bgd_model = np.zeros((1, 65), np.float64)
@@ -61,18 +62,17 @@ class GrabCut(threading.Thread):
 
     def run(self):
         original_shape = self.frame.shape
-        scale = 0.3
-        frame = cv2.resize(self.frame, None, fx=scale, fy=scale)
+        frame = cv2.resize(self.frame, None, fx=self.scale, fy=self.scale)
         frame = cv2.blur(frame, (5, 5))
         mask = np.zeros(frame.shape[:2], np.uint8)
 
-        x = int(self.x * scale)
-        y = int(self.y * scale)
-        w = int(self.w * scale)
-        h = int(self.h * scale)
+        x = int(self.x * self.scale)
+        y = int(self.y * self.scale)
+        w = int(self.w * self.scale)
+        h = int(self.h * self.scale)
 
-        offset_x = int((w * 0.7) * scale)
-        offset_y = int((h * 0.7) * scale)
+        offset_x = int((w * 0.7) * self.scale)
+        offset_y = int((h * 0.7) * self.scale)
 
         x = x + int(w / 2)
         y = y + int(h / 2)

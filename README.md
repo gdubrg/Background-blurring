@@ -59,11 +59,30 @@ frame_blurred = cv2.blur(frame_blurred, (21, 21))
 
 ### Merge results
 At this point, the blurred frame and the mask with the face segmentation are ready to be merged.<br>
+Facial pixels or blurred pixels are taken relying on the mask information. 
 ```
 frame = np.where((mask[:, :, np.newaxis] == 2) | (mask[:, :, np.newaxis] == 0), frame_blurred, frame_with_face)
 ```
 
 ## Performance
-In order to have real-time performance, some tricks are implemented.
+In order to have real-time performance, threads and some tricks are implemented.
+* **Threads**: there are 3 different threads in the program. One is for the frame acquisition, one for the
+GrabCut algorithm and one for the blurring part. The last two run in parallel, avoiding to sequentially run these two 
+independent operations.
+```
+webcam = Webcam(Queue(1))
+webcam.start()
 
-## Examples
+grabcut = GrabCut(frame, x, y, w, h, Queue(1))
+grabcut.start()
+
+blur = BlurBkg(Queue(1), frame)
+blur.start()
+```
+
+* **Queues** are used to transfer data from threads to the main program. The size of all queues is set to 1 
+to process always the last acquired frame, skipping the others when needed. 
+
+* **GrabCut** algorithm is computationally heavy. Then, it is run on a resized image 
+(a scale factor of 0.3 is tested) and finally the computed mask is upscaled in the original shape.
+
